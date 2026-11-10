@@ -1,0 +1,58 @@
+# Deterministic organization patch over the shipped headless profile.
+#
+# The organization registry owns membership; dispatch and delivery stay on the
+# Team rows, so this composition has exactly one mailbox. The subagent tools are
+# off for the same reason the Team patch turns them off: delegation has to go
+# through the Team provider for the Lead's roster to name the workers.
+- id: headless-startup
+  disabled: true
+
+- id: headless-runner
+  disabled: true
+
+- id: llm-deepseek
+  disabled: true
+
+- id: agent-loop
+  config:
+    agents:
+      - id: main
+        provider: deepseek-official
+        model: deepseek-v4-flash
+        cwd: !!js process.cwd()
+
+- id: session-persistence-jsonl
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: tool-subagent-control
+  disabled: true
+
+- id: tool-subagent-list-agents
+  disabled: true
+
+- id: tool-subagent-report
+  disabled: true
+
+- id: tool-subagent
+  disabled: true
+
+- id: tool-subagent-fork
+  disabled: true
+
+- insert:
+    - id: agent-org
+      name: '@deepseek-ai/dsh-experimental-agent-org'
+
+    - id: agent-team
+      name: '@deepseek-ai/dsh-experimental-agent-team'
+
+    - id: tool-agent-org
+      name: '@deepseek-ai/dsh-experimental-tool-agent-org'
+
+    - id: tool-agent-team
+      name: '@deepseek-ai/dsh-experimental-tool-agent-team'
+
+    - id: org-fixture-llm
+      name: './tests/fixtures/org-llm.mjs'

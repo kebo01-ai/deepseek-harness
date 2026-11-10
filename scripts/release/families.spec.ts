@@ -48,6 +48,9 @@ describe('release families', () => {
     expect(members
       .filter(member => member.directory.startsWith('packages/experimental/'))
       .map(member => member.name)).toEqual([
+      '@deepseek-ai/dsh-experimental-agent-org-profile',
+      '@deepseek-ai/dsh-experimental-agent-org-web-profile',
+      '@deepseek-ai/dsh-experimental-agent-org',
       '@deepseek-ai/dsh-experimental-agent-team-profile',
       '@deepseek-ai/dsh-experimental-agent-team',
       '@deepseek-ai/dsh-experimental-api-speech-to-text',
@@ -56,7 +59,12 @@ describe('release families', () => {
       '@deepseek-ai/dsh-experimental-browser-use-playwright-mcp',
       '@deepseek-ai/dsh-experimental-browser-use-runtime',
       '@deepseek-ai/dsh-experimental-browser-use-stagehand-native',
+      '@deepseek-ai/dsh-experimental-cc-sessions-profile',
+      '@deepseek-ai/dsh-experimental-cc-sessions-web-profile',
+      '@deepseek-ai/dsh-experimental-cc-sessions',
+      '@deepseek-ai/dsh-experimental-client-ui-agent-org',
       '@deepseek-ai/dsh-experimental-client-ui-agent-team',
+      '@deepseek-ai/dsh-experimental-client-ui-cc-board',
       '@deepseek-ai/dsh-experimental-client-ui-voice-input',
       '@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp',
       '@deepseek-ai/dsh-experimental-computer-use-cua-driver-native',
@@ -64,6 +72,7 @@ describe('release families', () => {
       '@deepseek-ai/dsh-experimental-ptc-runtime-python',
       '@deepseek-ai/dsh-experimental-speech-to-text-sensevoice',
       '@deepseek-ai/dsh-experimental-speech-to-text',
+      '@deepseek-ai/dsh-experimental-tool-agent-org',
       '@deepseek-ai/dsh-experimental-tool-agent-team',
       '@deepseek-ai/dsh-experimental-voice-input-bundle',
       '@deepseek-ai/dsh-experimental-webworker-packer',

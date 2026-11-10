@@ -33,6 +33,7 @@ const invalidCredentialScenarioDir = join(goldensDir, 'invalid-credential')
 const settlementScenarioDir = join(goldensDir, 'subagent-settlement')
 const settlementConfigPath = fileURLToPath(new URL('../subagent-settlement-snapshot.patch.yml', import.meta.url))
 const teamConfigPath = fileURLToPath(new URL('../team-snapshot.patch.yml', import.meta.url))
+const orgConfigPath = fileURLToPath(new URL('../org-snapshot.patch.yml', import.meta.url))
 const startupFailureConfigPath = fileURLToPath(new URL('./fixtures/startup-activation-error/activation-error.patch.yml', import.meta.url))
 const startupFailurePluginUrl = new URL('./fixtures/startup-activation-error/activation-error.mjs', import.meta.url).href
 const startupFailureExpected = join(goldensDir, 'startup-activation-error', 'stderr.expected.txt')
@@ -232,6 +233,49 @@ async function persistedLogs(cwd: string, root: string = join(cwd, '.sessions'))
     const content = await readPersistedLog(join(root, file))
     return { content, header: parseJsonl(content)[0] ?? {} }
   }))
+}
+
+/** Every `tool/result` payload text in one persisted log, in call order. */
+function toolResultTexts(rows: JsonObject[]): string[] {
+  return rows.flatMap((row) => {
+    if (row.type !== 'tool/result') return []
+    const message = (row.data as JsonObject).message as JsonObject | undefined
+    const blocks = message?.content as JsonObject[] | undefined
+    return (blocks ?? []).flatMap((block) => {
+      const items = block.content as JsonObject[] | undefined
+      return (items ?? []).flatMap(item => typeof item.text === 'string' ? [item.text] : [])
+    })
+  })
+}
+
+/** One decoded JSON value, kept only when it is an object. */
+function asJsonObject(value: unknown): JsonObject | undefined {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined
+  return value as JsonObject
+}
+
+/**
+ * The newest tool result that decoded to an object carrying `key`. The
+ * organization tools each render one distinct top-level key, so naming the key
+ * identifies the result without threading call ids through the log.
+ * @param rows - records of one persisted Session log.
+ * @param key - top-level property that identifies the tool's result.
+ * @returns the decoded result.
+ */
+function resultCarrying(rows: JsonObject[], key: string): JsonObject {
+  const found = toolResultTexts(rows).flatMap((text) => {
+    let decoded: unknown
+    try {
+      decoded = JSON.parse(text)
+    } catch {
+      // Failure results are prose; only decoded records answer this question.
+      return []
+    }
+    const value = asJsonObject(decoded)
+    return value !== undefined && key in value ? [value] : []
+  }).at(-1)
+  if (found === undefined) throw new Error(`no tool result carrying '${key}'`)
+  return found
 }
 
 describe('headless stream-json snapshots', () => {
@@ -900,6 +944,85 @@ describe('headless stream-json snapshots', () => {
         "workflowStopReason": "completed",
       }
     `)
+  }, 75_000)
+
+  it('records a named organization whose two workers each resolve their own membership', async () => {
+    const task = '建一个名为「研发一组」的智能组织，spawn 两个 worker 并把它们记进这个组织，通知每个 worker，最后读回名册。'
+    const result = await runLoaderSmoke({
+      label: 'Agent Org headless snapshot',
+      tempDirPrefix: 'headless-snapshot-agent-org-',
+      binScript,
+      libBinScript: binScript,
+      configPath: orgConfigPath,
+      binArgs: [orgConfigPath, task],
+      tsconfigPath,
+      processTimeoutMs: 60_000,
+      env: {
+        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+      },
+      inspect: async (cwd) => {
+        const logs = await persistedLogs(cwd)
+        const manager = logs.find(log => typeof log.header.parentSession !== 'string')
+        if (manager === undefined) throw new Error('organization snapshot did not persist its manager')
+        const managerRows = parseJsonl(manager.content)
+        const called = managerRows.filter(row => row.type === 'tool/call')
+          .map(row => (row.data as JsonObject).name)
+        expect(called.filter(name => name === 'org_create')).toHaveLength(1)
+        expect(called.filter(name => name === 'org_add_worker')).toHaveLength(2)
+        expect(called.filter(name => name === 'send_message')).toHaveLength(2)
+
+        // Delegation and delivery stay on the Team rows, so both workers are
+        // Team members in the same composition that records them as org rows.
+        const members = managerRows.filter(row => row.type === 'team/member')
+          .map(row => (row.data as JsonObject).member as JsonObject)
+        expect(members.filter(member => member.phase === 'active').map(member => member.name).sort())
+          .toEqual(['worker-a', 'worker-b'])
+        expect(managerRows.filter(row => row.type === 'team/message/delivered')).toHaveLength(2)
+
+        const created = resultCarrying(managerRows, 'memberCount')
+        expect(created.name).toBe('研发一组')
+        const roster = resultCarrying(managerRows, 'members').members as JsonObject[]
+        expect(roster.map(row => row.role)).toEqual(['manager', 'worker', 'worker'])
+        expect(roster[0]?.sessionId).toBe(manager.header.id)
+
+        // The organization owns membership, so each worker resolves the row
+        // from its own Session rather than from the manager's lineage.
+        const workers = logs.filter(log => typeof log.header.parentSession === 'string')
+        expect(workers).toHaveLength(2)
+        const resolved = workers.map((log) => {
+          const listed = resultCarrying(parseJsonl(log.content), 'organizations')
+          return (listed.organizations as JsonObject[]).map(org => [org.id, org.name])
+        })
+        expect(resolved).toEqual([
+          [[created.id, '研发一组']],
+          [[created.id, '研发一组']],
+        ])
+        expect(roster.slice(1).map(row => row.sessionId).sort())
+          .toEqual(workers.map(log => log.header.id).sort())
+
+        // Every Session in the run is gone with the process, and the roster is
+        // still on disk: membership is the organization's own durable state,
+        // not something derived from a living manager.
+        const stored = asJsonObject(JSON.parse(
+          await readFile(join(cwd, '.dsh', 'storages', 'agent_org.json'), 'utf8'),
+        ))
+        const orgs = asJsonObject(asJsonObject(stored?.tables)?.orgs)
+        if (orgs === undefined) throw new Error('the organization domain persisted no table')
+        expect(Object.keys(orgs)).toEqual([created.id])
+        const storedRow = asJsonObject(orgs[String(created.id)])
+        expect(storedRow?.name).toBe('研发一组')
+        const storedMembers = storedRow?.members as JsonObject[]
+        expect(storedMembers.map(member => member.role)).toEqual(['manager', 'worker', 'worker'])
+        expect(storedMembers.map(member => member.sessionId).sort())
+          .toEqual(roster.map(row => row.sessionId).sort())
+      },
+    })
+
+    expect(result.stderr).toBe('')
+    expect(parseJsonl(result.stdout).at(-1)).toMatchObject({
+      type: 'result',
+      output: 'ORG_OK: both workers recorded and finished.',
+    })
   }, 75_000)
 
   it('replays persisted goal tools through the one-shot app', async () => {

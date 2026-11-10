@@ -720,6 +720,22 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Owns the implicit-root roster, durable peer mailbox, shared task DAG, continuable-child lifecycle, and generated Team Remote methods; tool-agent-team contributes model controls and client-ui-agent-team mounts the browser contribution.',
   },
   {
+    key: 'agentOrgs',
+    pkg: 'experimental-agent-org',
+    title: 'Agent organization registry',
+    mode: 'core',
+    consumers: ['experimental-tool-agent-org'],
+    note: 'Owns durable named organizations and explicit many-to-many Session membership rows, so an organization precedes and outlives every Session that joins it; tool-agent-org contributes the model-facing create, join, and read tools.',
+  },
+  {
+    key: 'ccSessions',
+    pkg: 'experimental-cc-sessions',
+    title: 'cc-session directory',
+    mode: 'core',
+    consumers: ['experimental-client-ui-cc-board'],
+    note: 'Reads one workbench board over HTTP and offers exactly list, read, and type, so no consumer can end a board-owned session; client-ui-cc-board mounts the browser page that polls those reads and forwards keystrokes.',
+  },
+  {
     key: 'inspector',
     pkg: 'inspector',
     title: 'Cross-realm runtime inspection',

@@ -65,6 +65,7 @@ export interface PackageDependencyFacts {
   readonly hostRuntimeExportUses: readonly HostRuntimeExportUse[]
   readonly peerRequiredHostDependencies: ReadonlySet<string>
   readonly configurationOnlyDevDependencies: ReadonlySet<string>
+  readonly hostRuntimeAssetDependencies: ReadonlySet<string>
   readonly clientInject: ReadonlySet<string>
 }
 
@@ -483,6 +484,9 @@ export function readPackageDependencyFacts(
     configurationOnlyDevDependencies: new Set(
       policy.configurationOnlyDevDependencies[pkg.manifest.name ?? ''] ?? [],
     ),
+    hostRuntimeAssetDependencies: new Set(
+      policy.hostRuntimeAssetDependencies[pkg.manifest.name ?? ''] ?? [],
+    ),
     clientInject: new Set(inject.map(packageNameOf).filter(name => name !== undefined)),
   }
 }
@@ -575,6 +579,13 @@ export function readPackageDependencyState(
       ...Object.keys(policy.configurationOnlyDevDependencies)
         .filter(name => !selectedNames.has(name))
         .map(name => `configurationOnlyDevDependencies names unmanaged package ${name}`),
+      ...Object.entries(policy.hostRuntimeAssetDependencies).flatMap(([owner, names]) => {
+        const fact = facts.find(candidate => candidate.manifest.name === owner)
+        if (fact === undefined) return [`hostRuntimeAssetDependencies names unmanaged package ${owner}`]
+        return names
+          .filter(name => fact.manifest.dependencies?.[name] === undefined)
+          .map(name => `hostRuntimeAssetDependencies: ${owner} does not declare ${name} under dependencies`)
+      }),
     ].sort(),
     workspaceNames,
   }
@@ -603,9 +614,14 @@ export function expectedPackageDependencies(
   if (facts.role !== 'configured-host') {
     for (const sectionName of ['dependencies', 'optionalDependencies'] as const) {
       for (const name of Object.keys(facts.manifest[sectionName] ?? {})) {
-        if (!facts.workspaceNames.has(name)) add(name, 'devDependencies', 'declared browser build input')
+        if (!facts.workspaceNames.has(name) && !facts.hostRuntimeAssetDependencies.has(name)) {
+          add(name, 'devDependencies', 'declared browser build input')
+        }
       }
     }
+  }
+  for (const name of facts.hostRuntimeAssetDependencies) {
+    if (!facts.workspaceNames.has(name)) add(name, 'dependencies', 'configured Host runtime asset')
   }
   for (const name of facts.clientInject) {
     if (facts.workspaceNames.has(name)) add(name, 'devDependencies', 'dsh.client.inject')

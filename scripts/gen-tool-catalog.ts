@@ -63,6 +63,7 @@ import BrowserUseRegistry from '@deepseek-ai/dsh-browser-use'
 import * as StagehandBrowserTools from '@deepseek-ai/dsh-experimental-browser-use-stagehand-native'
 import type TeamService from '@deepseek-ai/dsh-experimental-agent-team'
 import * as ToolTeam from '@deepseek-ai/dsh-experimental-tool-agent-team'
+import * as ToolOrg from '@deepseek-ai/dsh-experimental-tool-agent-org'
 import * as ToolTodo from '@deepseek-ai/dsh-tool-todo'
 import type PluginManager from '@deepseek-ai/dsh-plugin-manager'
 import * as PluginManagerTools from '@deepseek-ai/dsh-plugin-manager/tools'
@@ -617,6 +618,22 @@ const TOOL_PACKAGES: ToolPackage[] = [
     scope: ctx => catalogChildScopes.get(ctx) as Agent,
     note:
       'All nine tools are scoped to implicit Team Leads and durable teammates. The shipped dsh-base bundle keeps the package disabled; the documented Agent Teams profile patch enables it while disabling the legacy continuable-child control names.',
+  },
+  {
+    pkg: '@deepseek-ai/dsh-experimental-tool-agent-org',
+    dir: 'tool-agent-org',
+    source: 'packages/experimental/tool-agent-org/src/index.ts',
+    requires: ['ctx.tools', 'ctx.agents', 'ctx.agentOrgs'],
+    writes: ['tool/call', 'tool/result'],
+    async mount(ctx) {
+      await ctx.plugin(AgentRegistry)
+      // The schemas are fixed, so a placeholder registry is enough to activate
+      // the row; no catalogued schema reads a stored organization.
+      ctx.provide('agentOrgs', {} as Context['agentOrgs'])
+      await ctx.plugin(ToolOrg)
+    },
+    note:
+      'The four tools register once on the composing plane and read their caller from the execution metadata, so every Agent in that composition sees them. Naming a group is the only verb added here: spawning, messaging, and shared tasks stay with `tool-agent-team`.',
   },
   {
     pkg: '@deepseek-ai/dsh-tool-todo',

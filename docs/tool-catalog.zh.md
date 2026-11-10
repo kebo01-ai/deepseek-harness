@@ -45,6 +45,7 @@
 | `@deepseek-ai/dsh-tool-subagent-control` | `interrupt_agent`、`list_agents`、`send_message` | `ctx.tools`、`ctx.subagents`、`ctx.agents and ctx.sessionProjections (list_agents only)` | `tool/call`、`tool/result`、`child session events through ctx.subagents` | - | 这些是控制可继续后台 subagent 的全局命名工具：绑定提供方的 `tool-subagent` 实例注册不同的委派工具；本包注册一次 `send_message` 和 `interrupt_agent`，另由 `list_agents` 通过单独加载的 `/list-agents` 插件提供，其目录行使用 sessionProjections 和实时 Agent 注册表。 |
 | `@deepseek-ai/dsh-tool-jobs` | `job_kill`、`job_list`、`job_output` | `ctx.tools`、`ctx.jobs`、`ctx.systemPrompt` | `tool/call`、`tool/result`、`user/message via agent.inject() for background completion notices` | - | 与任务种类无关的后台任务控制器：后台 bash 命令、PTY 发送和 subagent 都通过相同的 3 个工具读取、列出和终止。加载该插件会挂接控制器，从而启用生产方的 `ctx.jobs.start()`。 |
 | `@deepseek-ai/dsh-experimental-tool-agent-team` | `interrupt_agent`、`list_agents`、`send_message`、`spawn_teammate`、`team_task_create`、`team_task_get`、`team_task_list`、`team_task_update`、`wait_agent` | `ctx.tools`、`ctx.systemPrompt`、`ctx.agentTeams`、`an exact live Team member Agent` | `tool/call`、`team/member`、`team/message/queued`、`team/message/delivered`、`team/task`、`tool/result` | - | 这 9 个工具限定于隐式 Team Lead 与持久 teammate 作用域。随产品发布的 dsh-base bundle 默认禁用该包；文档中的 Agent Teams profile patch 会启用它，并禁用旧 continuable child 的同名控制工具。 |
+| `@deepseek-ai/dsh-experimental-tool-agent-org` | `org_add_worker`、`org_create`、`org_list`、`org_members` | `ctx.tools`、`ctx.agents`、`ctx.agentOrgs` | `tool/call`、`tool/result` | - | 这四个工具在组装平面上注册一次，并从执行元数据里读出调用方，因此那份 composition 里的每个 Agent 都看得到它们。这里新增的动作只有「给一组 Session 起个名字」：spawn、发信与共享任务仍然留在 `tool-agent-team`。 |
 | `@deepseek-ai/dsh-tool-todo` | `todo_write` | `ctx.tools`、`owning Agent session` | `tool/call`、`todo/write`、`tool/result` | - | todo_write 是会话所有的状态；UI 将最新的 todo/write 事件渲染为检查清单。`allowParallelInProgress` 是没有默认值的必填项，因此本目录明确选择 `true`，对应描述允许同时存在多个 `in_progress` 项。选择 `false` 的部署会获得同一工具，但描述会要求只能有 1 个活动任务。 |
 | `@deepseek-ai/dsh-tool-workflow` | `workflow` | `ctx.tools`、`ctx.workflowEngine`、`ctx.systemPrompt`、`a calling Agent (exec.agent parents the script children)` | `tool/call`、`tool/result` | - | - |
 | `@deepseek-ai/dsh-tool-workspace-dependencies` | `load_workspace_dependencies` | `ctx.tools` | `tool/call`, `tool/result` | - | - |
@@ -2304,6 +2305,93 @@ lsp 工具将提供方选择和语言服务器子进程置于 ctx.lsp 之后，�
 
 这 10 个工具限定于隐式 Team Lead 与持久 teammate 作用域。随产品发布的 dsh-base bundle 默认禁用该包；文档中的 Agent Teams profile patch 会启用它，并禁用旧 continuable child 的同名控制工具。
 
+
+<a id="deepseek-aidsh-experimental-tool-agent-org"></a>
+
+## `@deepseek-ai/dsh-experimental-tool-agent-org`
+
+### `org_add_worker`
+
+把一个正在运行的 Session 作为 worker 记入某个组织。一个 Session 可以同时是多个组织的 worker；在同一个组织里加第二条记录会被拒绝。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "org_id": {
+      "type": "string",
+      "description": "Organization id from org_create or org_list."
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Session id of the worker, as returned by spawn_teammate or list_agents."
+    }
+  },
+  "required": [
+    "org_id",
+    "session_id"
+  ]
+}
+```
+
+来源：[`packages/experimental/tool-agent-org/src/index.ts`](../packages/experimental/tool-agent-org/src/index.ts)
+
+### `org_create`
+
+创建一个具名组织，并把当前 Session 作为它的 manager 记入其中。组织拥有自己的 id，因此它比当前 Session 活得更久。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name for the organization."
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
+```
+
+来源：[`packages/experimental/tool-agent-org/src/index.ts`](../packages/experimental/tool-agent-org/src/index.ts)
+
+### `org_list`
+
+列出当前 Session 所属的每一个组织，最新的在前。
+
+```json
+{
+  "type": "object",
+  "properties": {}
+}
+```
+
+来源：[`packages/experimental/tool-agent-org/src/index.ts`](../packages/experimental/tool-agent-org/src/index.ts)
+
+### `org_members`
+
+按加入顺序读出某个组织的名册，并带上每位成员的角色。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "org_id": {
+      "type": "string",
+      "description": "Organization id from org_create or org_list."
+    }
+  },
+  "required": [
+    "org_id"
+  ]
+}
+```
+
+来源：[`packages/experimental/tool-agent-org/src/index.ts`](../packages/experimental/tool-agent-org/src/index.ts)
+
+这四个工具在组装平面上注册一次，并从执行元数据里读出调用方，因此那份 composition 里的每个 Agent 都看得到它们。这里新增的动作只有「给一组 Session 起个名字」：spawn、发信与共享任务仍然留在 `tool-agent-team`。
 
 <a id="deepseek-aidsh-tool-todo"></a>
 

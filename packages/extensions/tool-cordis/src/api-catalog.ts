@@ -131,6 +131,67 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'agentOrgs',
+    summary: 'Durable organization registry.',
+    description: 'Durable organization registry. Every verb reads the in-memory domain snapshot and writes through the domain\'s single write chain, so a membership change is one atomic record write with no order singleton to diverge from.',
+    methods: [
+      {
+        signature: 'async create(name: string): Promise<Org>',
+        description: 'Create one empty organization. The name is a display label and is not unique; two organizations may carry the same one.',
+        parameters: [{ name: 'name', description: 'Display name; rejected when empty after trimming or longer than `maxNameLength`.' }],
+        returns: 'the newly durable organization, with an empty roster.',
+      },
+      {
+        signature: 'get(id: OrgId): Org | undefined',
+        description: 'Look up one organization by id.',
+        parameters: [{ name: 'id', description: 'Organization id.' }],
+        returns: 'the organization, or `undefined` when no record is stored.',
+      },
+      {
+        signature: 'list(): readonly Org[]',
+        description: 'Every stored organization, newest first.',
+        parameters: [],
+        returns: 'detached organization projections in registry display order.',
+      },
+      {
+        signature: 'async delete(id: OrgId): Promise<boolean>',
+        description: 'Delete one organization and its whole roster. The member Sessions are not touched: this removes the organization, not the work it dispatched.',
+        parameters: [{ name: 'id', description: 'Organization to delete.' }],
+        returns: '`true` when a record was deleted, `false` when none was stored.',
+      },
+      {
+        signature: 'async join(id: OrgId, sessionId: SessionId, role: OrgRole): Promise<Org>',
+        description: 'Add one Session to one organization. The same Session may hold rows in several organizations; a second row in the *same* organization is rejected, because a Session has one role per organization.',
+        parameters: [{ name: 'id', description: 'Organization to join.' }, { name: 'sessionId', description: 'Session gaining membership.' }, { name: 'role', description: 'What the Session does in this organization.' }],
+        returns: 'the organization with the new row appended to its roster.',
+      },
+      {
+        signature: 'async leave(id: OrgId, sessionId: SessionId): Promise<Org>',
+        description: 'Remove one Session\'s membership row. Other organizations the Session belongs to are unaffected, and the Session itself is not touched.',
+        parameters: [{ name: 'id', description: 'Organization to leave.' }, { name: 'sessionId', description: 'Session losing membership.' }],
+        returns: 'the organization without that row.',
+      },
+      {
+        signature: 'membersOf(id: OrgId): readonly OrgMember[]',
+        description: 'The roster of one organization in join order.',
+        parameters: [{ name: 'id', description: 'Organization to read.' }],
+        returns: 'its membership rows.',
+      },
+      {
+        signature: 'orgsOf(sessionId: SessionId): readonly Org[]',
+        description: 'Every organization one Session belongs to. This is the many-to-many read: a worker Session dispatched by two managers appears in both.',
+        parameters: [{ name: 'sessionId', description: 'Session to look up.' }],
+        returns: 'its organizations in registry display order.',
+      },
+      {
+        signature: '@Remote(\'list\') remoteList(): OrgListView',
+        description: 'Read the whole registry through the generated Remote API. The read is global because an organization is not scoped to a Session: a browser showing one Session\'s organizations filters this snapshot by OrgRegistry.orgsOf\'s rule on the Session it is displaying.',
+        parameters: [],
+        returns: 'every stored organization in registry display order.',
+      },
+    ],
+  },
+  {
     key: 'agentPresets',
     summary: 'Registry of YAML-declared presets and the revisions live Agents retain.',
     description: 'Registry of YAML-declared presets and the revisions live Agents retain.',
@@ -552,6 +613,37 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Reserve the sole provider slot until the contribution is disposed. A second registration fails even when it repeats the current name. Providers must stop their tools and await owned work before releasing this registration.',
         parameters: [{ name: 'name', description: 'provider-owned name used in registration diagnostics.' }],
         returns: 'the effect disposer for this exact registration.',
+      },
+    ],
+  },
+  {
+    key: 'ccSessions',
+    summary: 'Read-and-type access to one workbench board\'s sessions.',
+    description: 'Read-and-type access to one workbench board\'s sessions.\n\nEndpoint and token resolve per request rather than at load: both come from the launch environment or a file the board rewrites when it rotates its token, so neither is knowable when the composition boots. A missing one is reported to the reader as a stated reason, which is what a board page must show instead of an empty grid.',
+    methods: [
+      {
+        signature: 'cadence(): CcCadence',
+        description: 'Poll cadence this host serves to reading pages.',
+        parameters: [],
+        returns: 'the roster interval, the screen interval, and the capture height.',
+      },
+      {
+        signature: '@Remote(\'roster\') async roster(): Promise<CcRosterView>',
+        description: 'List the sessions the board reports.',
+        parameters: [],
+        returns: 'the list, or a stated reason with an empty list.',
+      },
+      {
+        signature: '@Remote(\'pane\') async pane(target: CcSessionTarget): Promise<CcPaneView>',
+        description: 'Read one session\'s screen.',
+        parameters: [{ name: 'target', description: 'session to read.' }],
+        returns: 'the captured screen, or a stated reason with empty text.',
+      },
+      {
+        signature: '@Remote(\'send\') async send(target: CcSessionTarget, text: string, submit: boolean): Promise<CcSendResult>',
+        description: 'Forward one keystroke batch into a session, as the reader typed it.',
+        parameters: [{ name: 'target', description: 'session to type into.' }, { name: 'text', description: 'text to deliver; empty text is refused rather than sent.' }, { name: 'submit', description: 'whether to append a carriage return, submitting the line.' }],
+        returns: 'the board\'s answer, including its refusal when it declined.',
       },
     ],
   },
@@ -4494,6 +4586,34 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface BundleRowInfo {\n    rowId: string;\n    moduleName: string;\n    meta?: PluginLocalizedMeta;\n    entryId?: PluginEntryId;\n}',
   },
   {
+    name: 'CcCadence',
+    declaration: 'export interface CcCadence {\n    rosterIntervalMs: number;\n    paneIntervalMs: number;\n    paneLines: number;\n}',
+  },
+  {
+    name: 'CcPaneView',
+    declaration: 'export interface CcPaneView {\n    ok: boolean;\n    error: string;\n    target: CcSessionTarget;\n    text: string;\n}',
+  },
+  {
+    name: 'CcRosterView',
+    declaration: 'export interface CcRosterView {\n    ok: boolean;\n    error: string;\n    stale: boolean;\n    staleAgeS?: number;\n    scan: string;\n    sessions: readonly CcSessionRow[];\n    nodes: readonly string[];\n    unreachableNodes: readonly string[];\n    cadence: CcCadence;\n    boardUrl: string;\n}',
+  },
+  {
+    name: 'CcSendResult',
+    declaration: 'export interface CcSendResult {\n    ok: boolean;\n    error: string;\n    refused: string;\n    screen: string;\n}',
+  },
+  {
+    name: 'CcSessionName',
+    declaration: 'export type CcSessionName = Branded<\'CcSessionName\'>;',
+  },
+  {
+    name: 'CcSessionRow',
+    declaration: 'export interface CcSessionRow extends CcSessionTarget {\n    state: string;\n    summary: string;\n    cwd: string;\n    role: string;\n    where: string;\n    writable: boolean;\n    writeBlock: string;\n    isSelf: boolean;\n}',
+  },
+  {
+    name: 'CcSessionTarget',
+    declaration: 'export interface CcSessionTarget {\n    nodeIp: string;\n    name: CcSessionName;\n}',
+  },
+  {
     name: 'ChangeResult',
     declaration: 'export interface ChangeResult {\n    changed: boolean;\n    application: \'applied\' | \'restart-required\' | \'overridden\' | \'failed\' | \'cancelled\';\n    stage: \'install\' | \'enable\' | \'remove\';\n    target: string;\n    enabled?: boolean;\n    error?: ManagementError;\n    warnings?: string[];\n    packageResult?: PackageResult;\n    bundle?: string;\n    pendingBuilds?: string[];\n    approvedBuilds?: string[];\n    registries?: Registry[];\n    failedAt?: \'registry\' | \'spec-host\';\n}',
   },
@@ -5592,6 +5712,22 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'OptionalSessionSeq',
     declaration: 'export type OptionalSessionSeq = SessionSeq | null;',
+  },
+  {
+    name: 'Org',
+    declaration: 'export interface Org {\n    readonly id: OrgId;\n    readonly name: string;\n    readonly members: readonly OrgMember[];\n    readonly createdAt: string;\n    readonly updatedAt: string;\n}',
+  },
+  {
+    name: 'OrgListView',
+    declaration: 'export interface OrgListView {\n    readonly orgs: readonly Org[];\n}',
+  },
+  {
+    name: 'OrgMember',
+    declaration: 'export interface OrgMember {\n    readonly sessionId: SessionId;\n    readonly role: OrgRole;\n    readonly joinedAt: string;\n}',
+  },
+  {
+    name: 'OrgRole',
+    declaration: 'export type OrgRole = \'manager\' | \'worker\';',
   },
   {
     name: 'PackageResult',

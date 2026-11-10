@@ -358,6 +358,51 @@
       "source": "packages/experimental/agent-team/src/types.ts"
     },
     {
+      "doc": "docs/subsystems/agent-org.md",
+      "symbol": "OrgMember",
+      "source": "packages/experimental/agent-org/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/agent-org.md",
+      "symbol": "Org",
+      "source": "packages/experimental/agent-org/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/agent-org.md",
+      "symbol": "OrgListView",
+      "source": "packages/experimental/agent-org/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/cc-sessions.md",
+      "symbol": "CcSessionTarget",
+      "source": "packages/experimental/cc-sessions/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/cc-sessions.md",
+      "symbol": "CcSessionRow",
+      "source": "packages/experimental/cc-sessions/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/cc-sessions.md",
+      "symbol": "CcRosterView",
+      "source": "packages/experimental/cc-sessions/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/cc-sessions.md",
+      "symbol": "CcPaneView",
+      "source": "packages/experimental/cc-sessions/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/cc-sessions.md",
+      "symbol": "CcSendResult",
+      "source": "packages/experimental/cc-sessions/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/cc-sessions.md",
+      "symbol": "CcCadence",
+      "source": "packages/experimental/cc-sessions/src/types.ts"
+    },
+    {
       "doc": "docs/subsystems/commands.md",
       "symbol": "CommandInputDescriptor",
       "source": "packages/interaction/commands/src/types.ts"

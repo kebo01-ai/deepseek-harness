@@ -724,6 +724,26 @@ export interface Config {
 
 Source: [`packages/credentials/deepseek-account-platform/src/index.ts:23`](../packages/credentials/deepseek-account-platform/src/index.ts)
 
+<a id="deepseek-aidsh-experimental-agent-org"></a>
+
+## `@deepseek-ai/dsh-experimental-agent-org`
+
+Requires: `storageDomain`
+
+```ts config-catalog
+/** Deployment limits for the organization registry. */
+export interface Config {
+  /** Maximum simultaneously stored organizations. */
+  maxOrgs?: number
+  /** Maximum membership rows in one organization. */
+  maxMembersPerOrg?: number
+  /** Maximum display-name length in code units. */
+  maxNameLength?: number
+}
+```
+
+Source: [`packages/experimental/agent-org/src/types.ts:56`](../packages/experimental/agent-org/src/types.ts)
+
 <a id="deepseek-aidsh-experimental-agent-team"></a>
 
 ## `@deepseek-ai/dsh-experimental-agent-team`
@@ -837,6 +857,39 @@ export interface StagehandModelConfig {
 Depends on: `ModelConfig` (`@browserbasehq/stagehand`)
 
 Source: [`packages/experimental/browser-use-stagehand-native/src/index.ts:28`](../packages/experimental/browser-use-stagehand-native/src/index.ts)
+
+<a id="deepseek-aidsh-experimental-cc-sessions"></a>
+
+## `@deepseek-ai/dsh-experimental-cc-sessions`
+
+```ts config-catalog
+/** Plugin config; every field optional, `apply` fills environment defaults. */
+export interface Config {
+  /** Board base URL, for example `http://127.0.0.1:8197`; prefer {@link boardUrlEnv}. */
+  boardUrl?: string
+  /** Environment variable carrying the board base URL. Defaults to `DSH_CC_BOARD_URL`. */
+  boardUrlEnv?: string
+  /** Environment variable carrying the board token. Defaults to `DSH_CC_BOARD_TOKEN`. */
+  tokenEnv?: string
+  /** File holding the board token, read per request so a rotated token is picked up. */
+  tokenFile?: string
+  /** Board sweep kind requested on every list read. Defaults to `registry`. */
+  scan?: CcScan
+  /** Per-request timeout in milliseconds. Defaults to 20000. */
+  requestTimeoutMs?: number
+  /** Cadence served to reading pages. */
+  rosterIntervalMs?: number
+  /** Cadence served to reading pages. */
+  paneIntervalMs?: number
+  /** Screen lines one read requests. */
+  paneLines?: number
+}
+
+/** How the board is asked to find sessions on one list read. */
+export type CcScan = 'registry' | 'cluster'
+```
+
+Source: [`packages/experimental/cc-sessions/src/types.ts:114`](../packages/experimental/cc-sessions/src/types.ts)
 
 <a id="deepseek-aidsh-experimental-computer-use-cua-driver-mcp"></a>
 
@@ -3824,7 +3877,7 @@ export interface Config {
 export type ToolPresentationMode = 'native' | 'ptc' | 'both'
 ```
 
-Source: [`packages/core/tools/src/index.ts:673`](../packages/core/tools/src/index.ts)
+Source: [`packages/core/tools/src/index.ts:674`](../packages/core/tools/src/index.ts)
 
 <a id="deepseek-aidsh-typert-loader"></a>
 
@@ -4148,6 +4201,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-client-ui-sidebar-right` ([`packages/client/ui-sidebar-right/src/index.ts`](../packages/client/ui-sidebar-right/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-sidebar-terminal` ([`packages/client/ui-sidebar-terminal/src/index.ts`](../packages/client/ui-sidebar-terminal/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-skill` ([`packages/client/ui-skill/src/index.ts`](../packages/client/ui-skill/src/index.ts))
+- `@deepseek-ai/dsh-client-ui-skin` ([`packages/client/ui-skin/src/index.ts`](../packages/client/ui-skin/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-subagent` ([`packages/client/ui-subagent/src/index.ts`](../packages/client/ui-subagent/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-tool` ([`packages/client/ui-tool/src/index.ts`](../packages/client/ui-tool/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-trajectory` ([`packages/client/ui-trajectory/src/index.ts`](../packages/client/ui-trajectory/src/index.ts))
@@ -4164,9 +4218,12 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-cordis-client-runner` ([`packages/extensions/cordis-client-runner/src/index.ts`](../packages/extensions/cordis-client-runner/src/index.ts))
 - `@deepseek-ai/dsh-deepseek-llm-api-extensions` ([`packages/llm/deepseek-llm-api-extensions/src/index.ts`](../packages/llm/deepseek-llm-api-extensions/src/index.ts))
 - `@deepseek-ai/dsh-experimental-auto-review` — requires `llm` · `permissionPresets` · `sessions` · `tools` ([`packages/experimental/auto-review/src/index.ts`](../packages/experimental/auto-review/src/index.ts))
+- `@deepseek-ai/dsh-experimental-client-ui-agent-org` ([`packages/experimental/client-ui-agent-org/src/index.ts`](../packages/experimental/client-ui-agent-org/src/index.ts))
 - `@deepseek-ai/dsh-experimental-client-ui-agent-team` ([`packages/experimental/client-ui-agent-team/src/index.ts`](../packages/experimental/client-ui-agent-team/src/index.ts))
+- `@deepseek-ai/dsh-experimental-client-ui-cc-board` ([`packages/experimental/client-ui-cc-board/src/index.ts`](../packages/experimental/client-ui-cc-board/src/index.ts))
 - `@deepseek-ai/dsh-experimental-client-ui-voice-input` ([`packages/experimental/client-ui-voice-input/src/index.ts`](../packages/experimental/client-ui-voice-input/src/index.ts))
 - `@deepseek-ai/dsh-experimental-computer-use-cua-driver-native` — requires `computerUse` · `tools` · `systemPrompt` ([`packages/experimental/computer-use-cua-driver-native/src/index.ts`](../packages/experimental/computer-use-cua-driver-native/src/index.ts))
+- `@deepseek-ai/dsh-experimental-tool-agent-org` — requires `agents` · `agentOrgs` · `tools` ([`packages/experimental/tool-agent-org/src/index.ts`](../packages/experimental/tool-agent-org/src/index.ts))
 - `@deepseek-ai/dsh-fs-observation-policy` ([`packages/fs/fs-observation-policy/src/index.ts`](../packages/fs/fs-observation-policy/src/index.ts))
 - `@deepseek-ai/dsh-fs-ssh` — requires `ssh` · `sandboxPolicy` ([`packages/ssh/fs-ssh/src/index.ts`](../packages/ssh/fs-ssh/src/index.ts))
 - `@deepseek-ai/dsh-goal-round-driver` — requires `agents` · `goals` · `sessions` ([`packages/goal/goal-round-driver/src/index.ts`](../packages/goal/goal-round-driver/src/index.ts))
@@ -4237,8 +4294,12 @@ Imported as libraries by other packages; a `cordis.yml` cannot load them.
 - `@deepseek-ai/dsh-client-web` ([`packages/client/web/src/index.ts`](../packages/client/web/src/index.ts))
 - `@deepseek-ai/dsh-cmdline` ([`packages/boot/cmdline/src/index.ts`](../packages/boot/cmdline/src/index.ts))
 - `@deepseek-ai/dsh-deque` ([`packages/util/deque/src/index.ts`](../packages/util/deque/src/index.ts))
+- `@deepseek-ai/dsh-experimental-agent-org-profile` ([`packages/experimental/agent-org-profile/src/index.ts`](../packages/experimental/agent-org-profile/src/index.ts))
+- `@deepseek-ai/dsh-experimental-agent-org-web-profile` ([`packages/experimental/agent-org-web-profile/src/index.ts`](../packages/experimental/agent-org-web-profile/src/index.ts))
 - `@deepseek-ai/dsh-experimental-agent-team-profile` ([`packages/experimental/agent-team-profile/src/index.ts`](../packages/experimental/agent-team-profile/src/index.ts))
 - `@deepseek-ai/dsh-experimental-browser-use-runtime` ([`packages/experimental/browser-use-runtime/src/index.ts`](../packages/experimental/browser-use-runtime/src/index.ts))
+- `@deepseek-ai/dsh-experimental-cc-sessions-profile` ([`packages/experimental/cc-sessions-profile/src/index.ts`](../packages/experimental/cc-sessions-profile/src/index.ts))
+- `@deepseek-ai/dsh-experimental-cc-sessions-web-profile` ([`packages/experimental/cc-sessions-web-profile/src/index.ts`](../packages/experimental/cc-sessions-web-profile/src/index.ts))
 - `@deepseek-ai/dsh-experimental-voice-input-bundle` ([`packages/experimental/voice-input-bundle/src/index.ts`](../packages/experimental/voice-input-bundle/src/index.ts))
 - `@deepseek-ai/dsh-experimental-webworker-packer` ([`packages/experimental/webworker-packer/src/index.ts`](../packages/experimental/webworker-packer/src/index.ts))
 - `@deepseek-ai/dsh-experimental-webworker-runtime` ([`packages/experimental/webworker-runtime/src/index.ts`](../packages/experimental/webworker-runtime/src/index.ts))

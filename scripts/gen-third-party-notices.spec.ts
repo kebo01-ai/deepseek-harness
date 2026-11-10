@@ -9,6 +9,7 @@ import {
   claudeDistributionFromManifest,
   collectPythonDependencies,
   collectBundledPythonDependencies,
+  isAssetOnly,
   isOwnerAuthorizedRuntime,
   isPermissive,
   type Manifest,
@@ -361,6 +362,16 @@ describe('collectBundledPythonDependencies', () => {
       'copyleft-wheel': { license: 'GPL-3.0-only', repo: 'https://example.com/project' },
     })
     expect(() => { assertRuntimeLicenses(dependencies) }).toThrow('copyleft-wheel (GPL-3.0-only)')
+  })
+})
+
+describe('isAssetOnly', () => {
+  it('admits the font license as assets while keeping it out of the permissive set', () => {
+    expect(isAssetOnly('OFL-1.1')).toBe(true)
+    expect(isPermissive('OFL-1.1')).toBe(false)
+    expect(['MIT', 'GPL-3.0-only', 'OFL-1.1 OR MIT', 'OFL'].some(isAssetOnly)).toBe(false)
+    expect(() => { assertRuntimeLicenses([{ name: '@fontsource/noto-sans-sc', license: 'OFL-1.1' }]) }).not.toThrow()
+    expect(() => { assertRuntimeLicenses([{ name: 'some-code', license: 'GPL-3.0-only' }]) }).toThrow('some-code')
   })
 })
 

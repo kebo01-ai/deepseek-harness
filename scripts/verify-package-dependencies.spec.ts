@@ -50,6 +50,7 @@ function policy(fields: Partial<PackageDependencyPolicy> = {}): PackageDependenc
     clientFaceExclude: [],
     hostPackages: [],
     configurationOnlyDevDependencies: {},
+    hostRuntimeAssetDependencies: {},
     safeHostDependencyExports: {},
     peerRequiredHostExports: {},
     ...fields,
@@ -86,6 +87,7 @@ function facts(manifest: PackageDependencyManifest): PackageDependencyFacts {
     }],
     peerRequiredHostDependencies: new Set(),
     configurationOnlyDevDependencies: new Set(),
+    hostRuntimeAssetDependencies: new Set(),
     clientInject: new Set(),
   }
 }
@@ -175,6 +177,7 @@ function hostRuntimeFixture(): {
     }],
     peerRequiredHostDependencies: new Set(),
     configurationOnlyDevDependencies: new Set(),
+    hostRuntimeAssetDependencies: new Set(),
     clientInject: new Set(),
   }
   return { provider, workspaceNames, consumerFacts }
@@ -201,6 +204,13 @@ describe('package dependency scope', () => {
       '@deepseek-ai/dsh-client-ui-subagent': ['@deepseek-ai/dsh-client-ui-input-trigger'],
       '@deepseek-ai/dsh-client-ui-theme': ['@deepseek-ai/dsh-api-remotes'],
       '@deepseek-ai/dsh-client-ui-tool': ['@deepseek-ai/dsh-api-remotes'],
+    })
+    expect(PACKAGE_DEPENDENCY_POLICY.hostRuntimeAssetDependencies).toEqual({
+      '@deepseek-ai/dsh-client-ui-skin': [
+        '@fontsource-variable/ibm-plex-sans',
+        '@fontsource/ibm-plex-mono',
+        '@fontsource/noto-sans-sc',
+      ],
     })
     expect(PACKAGE_DEPENDENCY_POLICY.duplicateSafePackages).toEqual([
       '@deepseek-ai/dsh-brand',
@@ -365,8 +375,39 @@ describe('face-aware source classification', () => {
     expect(existsSync(join(root, 'packages/client/probe/lib'))).toBe(false)
   })
 
-  it('rejects a declared Host Typert module absent from the Host program', () => {
-    const { root } = generatedHostFixture('schema')
+  it('keeps a Host-read asset package in dependencies rather than calling it a browser build input', () => {
+    const manifest = { name: '@f/skin', dependencies: { '@fontsource/probe': '^1.0.0' } }
+    const bundled: PackageDependencyFacts = { ...facts(manifest), role: 'client-host' }
+    expect(expectedPackageDependencies(bundled).get('@fontsource/probe')?.section).toBe('devDependencies')
+
+    const served: PackageDependencyFacts = {
+      ...bundled,
+      hostRuntimeAssetDependencies: new Set(['@fontsource/probe']),
+    }
+    expect(expectedPackageDependencies(served).get('@fontsource/probe')).toEqual({
+      section: 'dependencies',
+      origins: ['configured Host runtime asset'],
+    })
+  })
+
+  it('rejects a reviewed asset package the owner does not declare or does not exist', () => {
+    const { root } = generatedHostFixture('object')
+    const owner = readPackageDependencyState(root, policy()).facts[0]?.manifest.name
+    if (owner === undefined) throw new Error('generated Host fixture was not classified')
+
+    expect(readPackageDependencyState(root, policy({
+      hostRuntimeAssetDependencies: { [owner]: ['@fontsource/absent'] },
+    })).policyViolations).toEqual([
+      `hostRuntimeAssetDependencies: ${owner} does not declare @fontsource/absent under dependencies`,
+    ])
+    expect(readPackageDependencyState(root, policy({
+      hostRuntimeAssetDependencies: { '@f/never-released': ['@fontsource/absent'] },
+    })).policyViolations).toEqual([
+      'hostRuntimeAssetDependencies names unmanaged package @f/never-released',
+    ])
+  })
+
+  it('rejects a declared Host Typert module absent from the Host program', () => {    const { root } = generatedHostFixture('schema')
     rmSync(join(root, 'tsconfig.host.json'))
 
     expect(() => readPackageDependencyState(root, policy())).toThrow(

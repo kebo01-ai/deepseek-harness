@@ -30,8 +30,16 @@ kind: "package-group"
 | [`client-ui-voice-input`](client-ui-voice-input/README.zh.md) | 麦克风录音与版本检查后的草稿插入 | — |
 | [`voice-input-bundle`](voice-input-bundle/README.zh.md) | 默认禁用的可选语音输入组合 | — |
 | [`agent-team-profile`](agent-team-profile/README.zh.md) | Agent Teams 协作、工具与 Web UI 组合包 | — |
+| [`agent-org`](agent-org/README.zh.md) | 持久的具名组织与显式的多对多会话成员资格 | `ctx.agentOrgs` |
+| [`agent-org-profile`](agent-org-profile/README.zh.md) | 智能组织的公开 opt-in profile 层 | — |
+| [`agent-org-web-profile`](agent-org-web-profile/README.zh.md) | 智能组织的公开 opt-in Web 层 | — |
+| [`client-ui-agent-org`](client-ui-agent-org/README.zh.md) | Web 组织名册、成员活动与成员导航 | — |
 | [`agent-team`](agent-team/README.zh.md) | 具名 teammate，成员之间持久消息与共享任务板 | `ctx.agentTeams` |
 | [`client-ui-agent-team`](client-ui-agent-team/README.zh.md) | Web Team roster、任务板与 teammate 导航 | — |
+| [`cc-sessions`](cc-sessions/README.zh.md) | 列出、读取并打字进一块 workbench 板子所报告的外部 agent 会话 | `ctx.ccSessions` |
+| [`cc-sessions-profile`](cc-sessions-profile/README.zh.md) | cc-session 目录的公开 opt-in profile 层 | — |
+| [`cc-sessions-web-profile`](cc-sessions-web-profile/README.zh.md) | cc-session 看板页的公开 opt-in Web 层 | — |
+| [`client-ui-cc-board`](client-ui-cc-board/README.zh.md) | Web 整页看板：每张 cc-session 实时卡片各带一个撰写框 | — |
 | [`auto-review`](auto-review/README.zh.md) | 显式 Web 层，在每个原生或 PTC inner 工具调用前使用同一模型审查 | — |
 | [`ptc-runtime-python`](ptc-runtime-python/README.zh.md) | PTC 执行 seam 的 CPython 子进程后端 | `ctx.ptcRuntime` |
 | [`computer-use-cua-driver-mcp`](computer-use-cua-driver-mcp/README.zh.md) | 通过 MCP 使用已安装的 Cua Driver | `ctx.computerUse` |
@@ -42,6 +50,7 @@ kind: "package-group"
 | [`browser-use-runtime`](browser-use-runtime/README.zh.md) | 实验性提供方共享的 Session 浏览器资源 | — |
 | [`inspector`](inspector/README.zh.md) | 用于 Host 调试、Client Runtime 检查、网络采集与 Cordis 树的跨 realm CDP hub | `ctx.inspector` |
 | [`tool-agent-team`](tool-agent-team/README.zh.md) | 让模型创建、发消息与协调 teammate 的九个工具 | 按作用域注册工具到 `ctx.tools` |
+| [`tool-agent-org`](tool-agent-org/README.zh.md) | 让模型给一个组织起名并记录其成员资格的四个工具 | 在插件作用域注册工具到 `ctx.tools` |
 | [`webworker-packer`](webworker-packer/README.zh.md) | 构建浏览器 worker 预览所消费的 gzip 压缩虚拟文件系统（VFS）镜像 | 库与 CLI（命令行界面），不使用 ctx key |
 | [`webworker-runtime`](webworker-runtime/README.zh.md) | 在专用浏览器 worker 中运行 harness 插件树 | 库与 worker 入口，不使用 ctx key |
 
