@@ -1,0 +1,13 @@
+# Experimental agent-organization profile layer. Apply after dsh-base and the
+# experimental Agent Teams layer: the organization registry owns membership rows,
+# while delegation and message delivery stay on the Team rows, so one composition
+# keeps exactly one mailbox.
+#
+# Both rows take the registry's shipped limits. A deployment that needs different
+# limits sets them in its own patch layer rather than restating the defaults here.
+- insert:
+    - id: agent-org
+      name: '@deepseek-ai/dsh-experimental-agent-org'
+
+    - id: tool-agent-org
+      name: '@deepseek-ai/dsh-experimental-tool-agent-org'

@@ -1,0 +1,221 @@
+.root {
+  position: relative;
+}
+
+.trigger {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  height: 24px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.trigger:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.trigger[aria-expanded='true'] {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.count {
+  display: inline-flex;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  corner-shape: round;
+  background: var(--dsw-alias-fill-l2);
+  color: var(--dsw-alias-label-primary);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.panel {
+  --dsh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
+  --dsh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+  --dsw-elevation-stroke-color: var(--dsw-alias-border-l1);
+
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  z-index: 110;
+  box-sizing: border-box;
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(560px, calc(100vh - 120px));
+  padding: 8px;
+  overflow: auto;
+  border: 0;
+  border-radius: 12px;
+  background: var(--dsw-specific-menu);
+  box-shadow: var(--dsw-elevation-prominent);
+  backdrop-filter: var(--dsw-menu-backdrop-filter);
+}
+
+.toolbar {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0 2px 6px;
+}
+
+.sectionTitle {
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.iconButton {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-tertiary);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.notice,
+.error {
+  margin: 0;
+  padding: 10px 4px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.notice {
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.error {
+  color: var(--dsw-alias-state-error-primary);
+  overflow-wrap: anywhere;
+}
+
+.org + .org {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 0.5px solid var(--dsw-alias-border-l1);
+}
+
+.orgHead {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 2px 4px 5px;
+}
+
+.orgName {
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.orgMeta {
+  margin-left: auto;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.roster {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 1px;
+  list-style: none;
+}
+
+.memberOpen,
+.memberStatic {
+  display: flex;
+  width: 100%;
+  gap: 7px;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.memberOpen {
+  cursor: pointer;
+}
+
+.memberOpen:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.member[data-self='true'] .memberStatic {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.memberStatic small {
+  margin-left: auto;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.role {
+  flex: none;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--dsw-alias-fill-l2);
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+.role[data-role='manager'] {
+  color: var(--dsw-alias-label-primary);
+}
+
+.memberId {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dsw-alias-label-secondary);
+  font-family: var(--dsw-font-mono);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memberStatus {
+  flex: none;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+  white-space: nowrap;
+}

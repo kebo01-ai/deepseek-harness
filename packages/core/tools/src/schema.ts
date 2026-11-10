@@ -630,3 +630,21 @@ export function defineTool<const S extends ParameterSchemaSpec, const O extends 
   }
   return tool
 }
+
+/**
+ * Declare one canonical output schema rendered as compact model-facing JSON.
+ * A tool whose result is a fixed record needs no bespoke rendering, and the
+ * declared schema is what makes the compiler check `execute` against the value
+ * the model is promised.
+ * @param schema - canonical value schema for one tool.
+ * @returns the `output` declaration accepted by {@link defineTool}.
+ */
+export function jsonOutput<const S extends ValueSchemaSpec>(schema: S): {
+  schema: S
+  render: (args: unknown, value: InferValue<S>) => [{ type: 'text'; text: string }]
+} {
+  return {
+    schema,
+    render: (_args: unknown, value: InferValue<S>) => [{ type: 'text', text: JSON.stringify(value) }],
+  }
+}

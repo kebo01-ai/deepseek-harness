@@ -65,6 +65,7 @@ const SDK_RENDERERS: Record<string, (schemas: ToolSdkSchema[]) => string> = {
 
 export {
   defineTool,
+  jsonOutput,
   valueSchemaSpecToJsonSchema,
   parameterSchemaSpecToJsonSchema,
   validateArgs,
