@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/skin-patches.md
+skin-patches.md: 82b69cfb61b526719da7431e21c67394cf3b495d
+skin-patches.zh.md: aeb315c688ff0099ef422345dd76acbd1eaacc83

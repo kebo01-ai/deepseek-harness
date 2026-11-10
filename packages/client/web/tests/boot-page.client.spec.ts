@@ -14,8 +14,19 @@ describe('BootPage', () => {
   it('draws the loading skeleton before any plugin state arrives', () => {
     const { el } = mount()
     expect(el.firstElementChild?.getAttribute('data-dsh-boot')).toBe('')
-    expect(el.textContent).toContain('HARNESS')
+    expect(el.textContent).toContain('Harness')
     expect(el.textContent).toContain('Loading plugins…')
+  })
+
+  it('names the deployment the client was built for', () => {
+    const previous = process.env.DSH_CLIENT_BRAND_NAME
+    process.env.DSH_CLIENT_BRAND_NAME = 'Acme Agent'
+    try {
+      expect(mount().el.textContent).toContain('Acme Agent')
+    } finally {
+      if (previous === undefined) delete process.env.DSH_CLIENT_BRAND_NAME
+      else process.env.DSH_CLIENT_BRAND_NAME = previous
+    }
   })
 
   it('keeps loading while entries are active or loading', () => {

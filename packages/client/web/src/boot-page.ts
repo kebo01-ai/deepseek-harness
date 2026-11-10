@@ -34,7 +34,10 @@ export class BootPage {
     this.root = div(css.boot)
     this.root.dataset.dshBoot = ''
     this.card = div(css.card)
-    this.wordmark = div(css.wordmark, 'HARNESS')
+    // The name's home is the deployment skin, which this page cannot import:
+    // it renders before any plugin row loads. Both read the same build
+    // variable, so a renamed deployment stays consistent across the handover.
+    this.wordmark = div(css.wordmark, process.env.DSH_CLIENT_BRAND_NAME ?? 'Harness')
     this.spinner = div(css.spinner)
     this.spinner.dataset.dshBootSpinner = ''
     this.hint = div(css.hint, 'Loading plugins…')
