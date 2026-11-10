@@ -1,0 +1,11 @@
+# Experimental cc-session directory layer. Apply after dsh-base. The row reads
+# the workbench board over HTTP and offers exactly list, read, and type, so a
+# composition carrying it cannot start, stop, or kill a session.
+#
+# The endpoint and token are deployment facts, not defaults: the row takes them
+# from the launch environment (DSH_CC_BOARD_URL / DSH_CC_BOARD_TOKEN) unless a
+# deployment sets `boardUrl`, `boardUrlEnv`, `tokenEnv`, or `tokenFile` in its
+# own patch layer.
+- insert:
+    - id: cc-sessions
+      name: '@deepseek-ai/dsh-experimental-cc-sessions'

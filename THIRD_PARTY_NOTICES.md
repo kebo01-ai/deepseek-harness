@@ -146,6 +146,16 @@ pnpm applies local patches to the following packages at install time, so shipped
 - `exceljs@4.4.0` — [`patches/exceljs@4.4.0.patch`](patches/exceljs@4.4.0.patch)
 - `node-pty@1.2.0-beta.15` — [`patches/node-pty@1.2.0-beta.15.patch`](patches/node-pty@1.2.0-beta.15.patch)
 
+## Bundled typefaces
+
+The following packages ship font files, not code. Their terms permit bundling and redistribution with software under any license; the obligations stay with the files themselves, which are served unmodified and under their own names, each beside the `LICENSE` its package installs. They are listed here so the required notice travels with every distribution.
+
+| Package | License |
+| --- | --- |
+| [`@fontsource-variable/ibm-plex-sans`](https://github.com/fontsource/font-files) | OFL-1.1 |
+| [`@fontsource/ibm-plex-mono`](https://github.com/fontsource/font-files) | OFL-1.1 |
+| [`@fontsource/noto-sans-sc`](https://github.com/fontsource/font-files) | OFL-1.1 |
+
 ## Official Claude Code platform payloads
 
 The project owner authorizes distribution of every version of the official `@anthropic-ai/claude-agent-sdk` package and the official Claude Code CLI/platform payloads that each version declares through `optionalDependencies`. This identity-scoped authorization does not classify their declared terms as permissive and does not cover any unrelated runtime package; version, declared-license, and payload-set changes still require the ordinary dependency, lockfile, compatibility, terms, and notices review.
